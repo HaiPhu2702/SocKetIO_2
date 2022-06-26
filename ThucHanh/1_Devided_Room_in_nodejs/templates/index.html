@@ -1,0 +1,64 @@
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+    <b>ROOMS</b>
+    <div id="rooms"></div>
+</div>
+
+<div style="float:left;width:300px;height:250px; overflow:scroll-y ;padding:10px;">
+    <div id="div-append"></div>
+    <input id="data" style="width:200px;"/>
+    <input type="button" id="datasend" value="send"/>
+</div>
+
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"
+        integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
+        crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+    const socket = io('http://localhost:8080');
+    socket.on('connect', () => {
+        socket.emit('adduser', prompt('usersName'), prompt('room names'))
+    })
+
+    socket.on('connect-room', data => {
+        $('#div-append').append(data + '</br>')
+    })
+
+    socket.on("update-room", (listRoom, currentRoom) => {
+        $('#rooms').empty()
+        $.each(listRoom, (key, value) => {
+            if (value === currentRoom) {
+                $('#rooms').append(`<div>${value}</div>`)
+            } else {
+             $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
+
+            }
+        })
+    })
+
+    function switchRoom(room) {
+
+        socket.emit('switchRoom', room)
+
+
+        socket.leave(socket.room)
+    }
+    $(function (){
+
+        $('#datasend').click(()=>{
+            let message =$('#data').val();
+            $('#data').val('');
+            socket.emit('sendChat', message)
+        })
+
+        $('#data').keypress((e)=>{
+            if(e.which === 13){
+                $('#data').blur()
+                $('#datasend').focus().click
+            }
+        })
+
+    })
+
+
+
+</script>
